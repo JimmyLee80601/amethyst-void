@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Amethyst Void Admin</title>
+<style>
+  :root{--bg:#f6f2fb;--surface:#fff;--ink:#251537;--soft:#5d4a75;--line:#ddd0ef;--accent:#7c3aed;--accent-deep:#4c1d95;--danger:#b91c1c}
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  .wrap{max-width:900px;margin:0 auto;padding:1.5rem}
+  h1{font-size:2rem;margin:0 0 .25rem} p{color:var(--soft)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:1.25rem;margin:1rem 0;box-shadow:0 10px 30px rgba(76,29,149,.08)}
+  label{display:block;font-weight:600;margin-top:1rem} input,textarea,select{width:100%;padding:.8rem;font-size:1.05rem;border:1px solid var(--line);border-radius:12px;margin-top:.3rem}
+  textarea{min-height:90px}
+  button{font-size:1.1rem;padding:.8rem 1.4rem;border-radius:999px;border:0;cursor:pointer;background:var(--accent);color:#fff;margin:.4rem .4rem .4rem 0}
+  button.secondary{background:#fff;color:var(--accent-deep);border:2px solid var(--accent)}
+  button.danger{background:var(--danger)} button:disabled{opacity:.5}
+  .tabs button{margin-right:.5rem} .tabs button.active{background:var(--accent-deep)}
+  .post{display:flex;gap:1rem;border:1px solid var(--line);border-radius:14px;padding:1rem;margin:1rem 0;align-items:flex-start}
+  .post img{width:120px;height:120px;object-fit:cover;border-radius:10px;background:#eee}
+  .post h3{margin:0} .post .price{font-weight:700;color:var(--accent-deep)}
+  .thumb{width:90px;height:90px;object-fit:cover;border-radius:10px;margin:.3rem .3rem 0 0}
+  #status{font-weight:600;white-space:pre-wrap}
+  .warn{background:#fff7ed;border:1px solid #fdba74;border-radius:12px;padding:1rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Amethyst Void Admin</h1>
+  <p>Big buttons, no code. Add a post, edit it, or delete it. Nothing goes live until you press Save / Publish.</p>
+
+  <div class="card tabs">
+    <button id="tabWeb" class="active" onclick="setMode('web')">Web — GitHub login</button>
+    <button id="tabLocal" onclick="setMode('local')">Dell — local file</button>
+    <p id="modeHelp">Web mode: sign in with a GitHub token (see README). Your token stays in this browser tab only — it is never saved to the site, and never sent to anyone but GitHub.</p>
+  </div>
+
+  <div class="card" id="webCard">
+    <label>GitHub owner <input id="owner" value="JimmyLee80601"></label>
+    <label>Repository <input id="repo" value="amethyst-void"></label>
+    <label>Branch <input id="branch" value="main"></label>
+    <label>GitHub token (paste here, never in chat) <input id="token" type="password" placeholder="github_pat_… or classic token with Contents read/write"></label>
+    <button onclick="loadWeb()">Load posts from GitHub</button>
+    <button class="secondary" onclick="logout()">Log out / clear token</button>
+    <p>Need a token? GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → New token → pick only the amethyst-void repo → Contents: Read and write. Use a short expiry and keep it to yourself.</p>
+  </div>
+
+  <div class="card" id="localCard" hidden>
+    <p><strong>Dell mode:</strong> open this file on your Dell, pick your Void folder, edit, then Save. Then run Publish-Void.ps1 to push it live.</p>
+    <button onclick="pickFolder()">1. Choose Void folder</button>
+    <span id="folderName">No folder picked yet</span><br>
+    <label>Or load a content.json file <input type="file" id="loadFile" accept=".json" onchange="loadLocalFile(event)"></label>
+    <button onclick="saveLocal()">Save to folder / download</button>
+    <div class="warn"><strong>If no folder is picked:</strong> Save downloads a new content.json. Copy it into your Void repo folder (replacing the old one), copy any new images into assets/, then run Publish-Void.ps1.</div>
+  </div>
+
+  <div class="card">
+    <h2 id="formTitle">Add a new post</h2>
+    <label>Title * <input id="title" placeholder="e.g. Violet Storm Set"></label>
+    <label>Description <textarea id="desc" placeholder="What is in this set? Polish, props, setting…"></textarea></label>
+    <label>Price (optional, e.g. $15) <input id="price" placeholder="$15"></label>
+    <label>Section
+      <select id="section">
+        <option>Latest</option><option>Gallery</option><option>Bedroom Set</option><option>Harley After Midnight</option><option>Sets &amp; Customs</option>
+      </select>
+    </label>
+    <label>Images * <input type="file" id="images" accept="image/*" multiple onchange="previewImages(event)"></label>
+    <div id="previews"></div>
+    <button onclick="savePost()">Save post</button>
+    <button class="secondary" onclick="clearForm()">Clear form</button>
+  </div>
+
+  <div class="card">
+    <h2>Posts (<span id="count">0</span>)</h2>
+    <div id="status">Load posts first, then add, edit, or delete below.</div>
+    <div id="list"></div>
+    <button onclick="saveAll()">Save / Publish all changes</button>
+    <p>Delete means delete: on Save, the post is removed from content.json and its images are deleted from the repo too, so they are not still reachable by direct link.</p>
+  </div>
+</div>
+
+<script>
+var posts = [], editingId = null, newFiles = {}, deletedImages = [], dirHandle = null, mode = 'web', contentSha = null;
+function setMode(m){ mode = m; document.getElementById('tabWeb').className = m==='web'?'active':''; document.getElementById('tabLocal').className = m==='local'?'active':''; document.getElementById('webCard').hidden = m!=='web'; document.getElementById('localCard').hidden = m!=='local'; document.getElementById('modeHelp').textContent = m==='web' ? 'Web mode: sign in with a GitHub token (see README). Your token stays in this browser tab only — it is never saved to the site, and never sent to anyone but GitHub.' : 'Dell mode: pick your Void folder on the Dell, edit, save, then run Publish-Void.ps1 to push it live.'; }
+function setStatus(t){ document.getElementById('status').textContent = t; }
+function cleanName(n){ return n.toLowerCase().replace(/[^a-z0-9.\-_]+/g, '-').replace(/-+/g,'-'); }
+function api(path, method, body){ var o=document.getElementById('owner').value.trim(), r=document.getElementById('repo').value.trim(), t=document.getElementById('token').value; return fetch('https://api.github.com/repos/'+o+'/'+r+'/'+path, {method: method||'GET', headers:{'Authorization':'Bearer '+t,'Accept':'application/vnd.github+json','Content-Type':'application/json'}, body: body?JSON.stringify(body):undefined}).then(function(res){ if(!res.ok) return res.json().then(function(j){ throw new Error(j.message||('GitHub error '+res.status)); }); return res.json(); }); }
+function b64(s){ return btoa(unescape(encodeURIComponent(s))); }
+function render(){ document.getElementById('count').textContent = posts.length; var list=document.getElementById('list'); list.innerHTML=''; if(!posts.length){ list.innerHTML='<p>No posts yet. Add one above.</p>'; return; } posts.forEach(function(p){ var d=document.createElement('div'); d.className='post'; var img = p.images && p.images[0] ? p.images[0] : ''; var im = img ? (img.indexOf('http')===0||img.indexOf('data:')===0 ? img : 'assets/'+img.split('/').pop()) : ''; d.innerHTML = (im?'<img src="'+im+'" alt="">':'') + '<div><h3>'+escapeHtml(p.title)+'</h3><div>'+escapeHtml(p.section||'Latest')+'</div>'+(p.price?'<div class="price">'+escapeHtml(p.price)+'</div>':'')+'<p>'+escapeHtml(p.description||'')+'</p><button onclick="editPost(\''+p.id+'\')">Edit</button><button class="danger" onclick="deletePost(\''+p.id+'\')">Delete</button></div>'; list.appendChild(d); }); }
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function previewImages(e){ var box=document.getElementById('previews'); box.innerHTML=''; Array.prototype.forEach.call(e.target.files, function(f){ var r=new FileReader(); r.onload=function(ev){ var im=document.createElement('img'); im.src=ev.target.result; im.className='thumb'; box.appendChild(im); newFiles[cleanName(f.name)] = ev.target.result.split(',')[1]; }; r.readAsDataURL(f); }); }
+function clearForm(){ editingId=null; document.getElementById('formTitle').textContent='Add a new post'; ['title','desc','price'].forEach(function(id){ document.getElementById(id).value=''; }); document.getElementById('images').value=''; document.getElementById('previews').innerHTML=''; newFiles={}; }
+function savePost(){ var title=document.getElementById('title').value.trim(); if(!title){ alert('Give the post a title first.'); return; } var imgs = Object.keys(newFiles).map(function(n){ return 'assets/'+n; }); var p = editingId ? posts.find(function(x){ return x.id===editingId; }) : null; if(p){ p.title=title; p.description=document.getElementById('desc').value.trim(); p.price=document.getElementById('price').value.trim(); p.section=document.getElementById('section').value; if(imgs.length) p.images=imgs; } else { posts.unshift({id:'post-'+Date.now(), title:title, description:document.getElementById('desc').value.trim(), price:document.getElementById('price').value.trim(), section:document.getElementById('section').value, images:imgs, created:new Date().toISOString().slice(0,10)}); } clearForm(); render(); setStatus('Post saved in this page. Press "Save / Publish all changes" to actually publish it.'); }
+function editPost(id){ var p=posts.find(function(x){ return x.id===id; }); if(!p) return; editingId=id; document.getElementById('formTitle').textContent='Editing: '+p.title; document.getElementById('title').value=p.title; document.getElementById('desc').value=p.description||''; document.getElementById('price').value=p.price||''; document.getElementById('section').value=p.section||'Latest'; window.scrollTo(0,0); }
+function deletePost(id){ var p=posts.find(function(x){ return x.id===id; }); if(!p) return; if(!confirm('Delete "'+p.title+'" for real? Its images will be deleted on Save too.')) return; (p.images||[]).forEach(function(im){ deletedImages.push(im.split('/').pop()); }); posts = posts.filter(function(x){ return x.id!==id; }); render(); setStatus('Post deleted in this page. Press "Save / Publish all changes" to actually publish the deletion.'); }
+function loadWeb(){ var t=document.getElementById('token').value; if(!t){ alert('Paste your GitHub token first.'); return; } setStatus('Loading from GitHub…'); api('contents/content.json?ref='+encodeURIComponent(document.getElementById('branch').value)).then(function(j){ contentSha=j.sha; var txt=decodeURIComponent(escape(atob(j.content.replace(/\n/g,'')))); posts = JSON.parse(txt).posts || []; render(); setStatus('Loaded '+posts.length+' posts from GitHub.'); }).catch(function(e){ if(String(e.message).indexOf('Not Found')>=0){ posts=[]; contentSha=null; render(); setStatus('No content.json yet on GitHub — starting fresh. Add a post and Save to create it.'); } else setStatus('Could not load: '+e.message); }); }
+function logout(){ document.getElementById('token').value=''; contentSha=null; setStatus('Token cleared from this tab.'); }
+function saveAll(){ if(mode==='local'){ saveLocal(); return; } if(!document.getElementById('token').value){ alert('Paste your GitHub token first.'); return; } setStatus('Publishing… uploading images, then content.json. Do not close this tab.'); var uploads = Object.keys(newFiles).map(function(name){ return api('contents/assets/'+name, 'PUT', {message:'Add image '+name, content:newFiles[name], branch:document.getElementById('branch').value}); }); Promise.all(uploads).then(function(){ var dels = deletedImages.map(function(name){ return api('contents/assets/'+name+'?ref='+encodeURIComponent(document.getElementById('branch').value)).then(function(j){ return api('contents/assets/'+name, 'DELETE', {message:'Delete image '+name, sha:j.sha, branch:document.getElementById('branch').value}); }).catch(function(){ return null; }); }); return Promise.all(dels); }).then(function(){ var body={message:'Update Amethyst Void posts', content:b64(JSON.stringify({posts:posts}, null, 2)+'\n'), branch:document.getElementById('branch').value}; if(contentSha) body.sha=contentSha; return api('contents/content.json', 'PUT', body); }).then(function(j){ contentSha=j.content.sha; newFiles={}; deletedImages=[]; setStatus('Published! The live site updates in about a minute.'); }).catch(function(e){ setStatus('Publish failed: '+e.message); }); }
+async function pickFolder(){ try{ dirHandle = await window.showDirectoryPicker(); document.getElementById('folderName').textContent = dirHandle.name; var f = await dirHandle.getFileHandle('content.json').catch(function(){ return null; }); if(f){ var file = await f.getFile(); var txt = await file.text(); posts = (JSON.parse(txt).posts||[]); render(); setStatus('Loaded '+posts.length+' posts from this folder.'); } else setStatus('No content.json in that folder yet — starting fresh.'); } catch(e){ setStatus('Folder pick cancelled or not supported in this browser. Use the download option instead.'); } }
+async function saveLocal(){ var txt = JSON.stringify({posts:posts}, null, 2)+'\n'; if(dirHandle){ try{ var fh = await dirHandle.getFileHandle('content.json', {create:true}); var w = await fh.createWritable(); await w.write(txt); await w.close(); var ah = await dirHandle.getDirectoryHandle('assets', {create:true}); for(var name in newFiles){ var ih = await ah.getFileHandle(name, {create:true}); var iw = await ih.createWritable(); var bin = atob(newFiles[name]); var arr = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i); await iw.write(arr); await iw.close(); } for(var d=0; d<deletedImages.length; d++){ try{ await ah.removeEntry(deletedImages[d]); }catch(e){} } newFiles={}; deletedImages=[]; setStatus('Saved into the Void folder. Now run Publish-Void.ps1 to push it live.'); return; }catch(e){ setStatus('Could not write to folder: '+e.message+' — falling back to download.'); } } var a=document.createElement('a'); a.href='data:application/json,'+encodeURIComponent(txt); a.download='content.json'; a.click(); setStatus('Downloaded content.json. Copy it into your Void repo folder, copy new images into assets/, then run Publish-Void.ps1.'); }
+function loadLocalFile(e){ var f=e.target.files[0]; if(!f) return; var r=new FileReader(); r.onload=function(ev){ try{ posts=(JSON.parse(ev.target.result).posts||[]); render(); setStatus('Loaded '+posts.length+' posts from file.'); }catch(err){ setStatus('That file did not look like content.json.'); } }; r.readAsText(f); }
+render();
+</script>
+</body>
+</html>
