@@ -442,6 +442,14 @@
       </div>
     </section>
 
+    <section id="latest" class="tint" hidden>
+      <div class="wrap">
+        <p class="eyebrow">Fresh from the studio</p>
+        <h2>Latest</h2>
+        <div id="latestGrid" class="gallery"></div>
+      </div>
+    </section>
+
     <section id="sets">
       <div class="wrap">
         <div class="sec-head">
@@ -924,6 +932,26 @@
           ta.remove();
         }
       });
+    </script>
+    <script>
+      fetch('content.json').then(function(r){ return r.json(); }).then(function(data){
+        var posts = (data && data.posts) || [];
+        if (!posts.length) return;
+        var sec = document.getElementById('latest');
+        var grid = document.getElementById('latestGrid');
+        if (!sec || !grid) return;
+        sec.hidden = false;
+        posts.forEach(function(p){
+          var card = document.createElement('article');
+          card.className = 'offer';
+          var img = (p.images && p.images[0]) ? p.images[0] : '';
+          card.innerHTML = (img ? '<img src="' + img + '" alt="" loading="lazy">' : '') + '<h3></h3><p></p>' + (p.price ? '<p class="price"></p>' : '');
+          card.querySelector('h3').textContent = p.title || '';
+          card.querySelector('p').textContent = p.description || '';
+          if (p.price) card.querySelector('.price').textContent = p.price;
+          grid.appendChild(card);
+        });
+      }).catch(function(){ /* no content.json yet — section stays hidden */ });
     </script>
   </body>
 </html>
