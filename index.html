@@ -1071,7 +1071,7 @@
         var target = studioChecked("studioTarget") || "fastsd";
         var lora = document.getElementById("studioLora").checked;
 
-        var lock = "locked face of Harley, woman mid 30s, " + eye + " eyes, photorealistic, sharp focus, natural skin texture, long half-red half-blue split-dyed hair with opposite cross-streaks";
+        var lock = (shot === "feet") ? "photorealistic, sharp focus, natural skin texture" : "locked face of Harley, woman mid 30s, " + eye + " eyes, photorealistic, sharp focus, natural skin texture, long half-red half-blue split-dyed hair with opposite cross-streaks";
         var ink = "tops of feet tattooed with exact \"Mr. Easton\" script, butterfly tattoo, scattered star tattoos, crisp black ink";
         var toes = "extremely short stubby thick smooth toes, toes clearly separated, ten toes total, small neat glossy " + polish + " painted toenails, natural nail size, tops of feet only, never soles";
 
@@ -1097,7 +1097,6 @@
         var parts = [framing, lock, ink, toes, theme];
         if (setting) parts.push(setting);
         if (must) parts.push(must);
-        parts.push("soft window light");
         var prompt = parts.join(", ");
 
         var neg = negExtra + "three feet, extra feet, extra toes, missing toes, fused toes, overlapping toes, merged feet, long toes, skinny toes, slender toes, deformed feet, blurry feet, oversized toenails, unpainted toenails, soles of feet, bottom view, shoes, socks, stockings, text, watermark, cartoon, CGI, blurry";
