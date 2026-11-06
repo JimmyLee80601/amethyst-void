@@ -263,6 +263,11 @@
       @media (prefers-color-scheme: dark) { .estimate .amount { color: var(--accent); } }
       .builder-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.1rem; }
       .copied-note { font-size: 0.88rem; color: var(--accent-deep); min-height: 1.2em; }
+      .lock-list { margin: 0 0 1.05rem; padding-left: 1.1rem; color: var(--ink-soft); font-size: 0.92rem; line-height: 1.55; }
+      .prompt-label { display: block; font-weight: 500; margin: 1rem 0 0.4rem; font-size: 0.95rem; }
+      .prompt-label:first-child { margin-top: 0; }
+      .prompt-out { min-height: 150px; }
+      .prompt-out.short { min-height: 110px; }
 
       /* ---------- faq ---------- */
       .faq { display: grid; gap: 0.8rem; max-width: 820px; }
@@ -333,6 +338,7 @@
         <a href="#bedroom">Bedroom Set</a>
         <a href="#zombie">Zombie Set</a>
         <a href="#sets">Sets &amp; Customs</a>
+        <a href="#studio">Studio</a>
         <a href="#faq">FAQ</a>
         <a class="cta" href="#custom">Plan a custom shoot</a>
       </div>
@@ -559,6 +565,111 @@
       </div>
     </section>
 
+
+    <section id="studio">
+      <div class="wrap">
+        <div class="sec-head">
+          <p class="eyebrow">Studio prompt builder</p>
+          <h2>Build a shoot, then run it at home</h2>
+          <p>This builder writes the full generation prompt for you — Harley's locked look is already in it, every time. Nothing here generates an image or sends anything anywhere. Copy the prompt, run it on the S23 Ultra (Local Dream) or the Dell (FastSD CPU / ComfyUI CPU), pick the winners, and upload them to the gallery. That is the whole loop.</p>
+        </div>
+        <div class="builder">
+          <form class="panel" id="studioForm">
+            <div class="field">
+              <label>Locked in — every prompt, no editing needed</label>
+              <ul class="lock-list">
+                <li>Locked face, mid-30s, photorealistic, sharp focus, natural skin</li>
+                <li>Long half-red half-blue split-dyed hair, opposite cross-streaks</li>
+                <li>Tops of feet: "Mr. Easton" script, butterfly + star tattoos, crisp black ink</li>
+                <li>Short thick smooth toes, five toes per foot, no protruding knuckles</li>
+                <li>Bright painted toenails, tops of feet only, never soles</li>
+              </ul>
+            </div>
+            <div class="field">
+              <label>Eye colour</label>
+              <div class="radio-row" role="radiogroup" aria-label="Eye colour">
+                <label class="radio-pill"><input type="radio" name="studioEye" value="blue" checked /><span>Blue</span></label>
+                <label class="radio-pill"><input type="radio" name="studioEye" value="green" /><span>Green</span></label>
+                <label class="radio-pill"><input type="radio" name="studioEye" value="hazel" /><span>Hazel</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label>Shot</label>
+              <div class="radio-row" role="radiogroup" aria-label="Shot">
+                <label class="radio-pill"><input type="radio" name="studioShot" value="feet" checked /><span>Feet close-up</span></label>
+                <label class="radio-pill"><input type="radio" name="studioShot" value="portrait" /><span>Full portrait</span></label>
+                <label class="radio-pill"><input type="radio" name="studioShot" value="angel" /><span>Angel wings</span></label>
+                <label class="radio-pill"><input type="radio" name="studioShot" value="bedroom" /><span>Bedroom</span></label>
+                <label class="radio-pill"><input type="radio" name="studioShot" value="zombie" /><span>Zombie</span></label>
+              </div>
+              <span class="hint">Feet close-up is the Amethyst Void test shot — only two feet, cropped at the ankles.</span>
+            </div>
+            <div class="field">
+              <label for="studioTheme">Theme / setting</label>
+              <select id="studioTheme">
+                <option>Soft white bedsheets, soft window light</option>
+                <option>Amethyst geode / crystal bed, violet light</option>
+                <option>Black silk and amethyst stones, gold dust</option>
+                <option>Nebula clouds and starlight</option>
+                <option>Pumpkin fog, Halloween night</option>
+                <option>Graveyard, moonlight, fog</option>
+                <option>Fall leaves and cozy knit, warm light</option>
+                <option>Dark water, ripples and reflections</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="studioPolish">Polish colour</label>
+              <select id="studioPolish">
+                <option>bright red</option>
+                <option>hot pink</option>
+                <option>neon purple</option>
+                <option>bright cyan</option>
+                <option>orange-coral</option>
+                <option>lime green</option>
+                <option>gold</option>
+                <option>multi-colour neon crackle, a different bright colour on every toe</option>
+              </select>
+              <span class="hint">Bright red is the current test colour — it is the one that keeps not landing, so say it loud in the prompt.</span>
+            </div>
+            <div class="field">
+              <label for="studioSetting">Setting &amp; props</label>
+              <textarea id="studioSetting" placeholder="e.g. feet propped on a giant amethyst geode, anklet with purple stones…"></textarea>
+            </div>
+            <div class="field">
+              <label for="studioMust">Must-haves</label>
+              <input type="text" id="studioMust" placeholder="e.g. Mr. Easton ink clearly visible, only two feet" />
+            </div>
+            <div class="field">
+              <label>Run it on</label>
+              <div class="radio-row" role="radiogroup" aria-label="Run it on">
+                <label class="radio-pill"><input type="radio" name="studioTarget" value="fastsd" checked /><span>FastSD CPU — Dell</span></label>
+                <label class="radio-pill"><input type="radio" name="studioTarget" value="localdream" /><span>Local Dream — S23 Ultra</span></label>
+                <label class="radio-pill"><input type="radio" name="studioTarget" value="comfy" /><span>ComfyUI CPU — Dell</span></label>
+              </div>
+            </div>
+            <div class="field">
+              <label><input type="checkbox" id="studioLora" /> Add more_details LoRA at 0.5 <span class="hint">(FastSD only — only if it is actually in lora_models)</span></label>
+            </div>
+          </form>
+          <div class="panel">
+            <label class="prompt-label" for="studioPromptOut">Positive prompt — copy this into the generator</label>
+            <div class="brief-out prompt-out" id="studioPromptOut" aria-live="polite"></div>
+            <label class="prompt-label" for="studioNegOut">Negative prompt</label>
+            <div class="brief-out prompt-out short" id="studioNegOut" aria-live="polite"></div>
+            <label class="prompt-label" for="studioSettingsOut">Settings to use</label>
+            <div class="brief-out prompt-out short" id="studioSettingsOut" aria-live="polite"></div>
+            <div class="builder-actions">
+              <button class="btn btn-primary" id="studioCopyPrompt" type="button">Copy prompt</button>
+              <button class="btn btn-soft" id="studioCopyNeg" type="button">Copy negative</button>
+              <button class="btn btn-soft" id="studioDownload" type="button">Download prompt pack (.txt)</button>
+            </div>
+            <p class="copied-note" id="studioNote" role="status"></p>
+            <p class="hint">Walkthrough: 1. Pick a shot. 2. Copy the prompt. 3. Run it, fresh seed, one change at a time. 4. Keep only frames with two feet, short stubby toes, and the polish actually on. 5. Upload winners to assets and add them to the gallery list in index.html.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section id="faq">
       <div class="wrap">
         <div class="sec-head">
@@ -603,6 +714,7 @@
           <a href="#zombie">Zombie Set</a>
           <a href="#sets">Sets &amp; Customs</a>
           <a href="#custom">Custom brief</a>
+          <a href="#studio">Studio prompt builder</a>
           <a href="#faq">FAQ</a>
         </nav>
       </div>
@@ -931,6 +1043,93 @@
           catch (e) { copyNote.textContent = "Copy didn't work here — use the download instead."; }
           ta.remove();
         }
+      });
+
+      /* ---------------- studio prompt builder ---------------- */
+      var studioForm = document.getElementById("studioForm");
+      var studioPromptOut = document.getElementById("studioPromptOut");
+      var studioNegOut = document.getElementById("studioNegOut");
+      var studioSettingsOut = document.getElementById("studioSettingsOut");
+      var studioNote = document.getElementById("studioNote");
+
+      function studioVal(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+      function studioChecked(name) { var el = studioForm.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ""; }
+
+      var STUDIO_SETTINGS = {
+        fastsd: "FastSD CPU — Dell\nBase: epiCRealism (epicrealism_naturalSinRC1VAE.safetensors)\nMode: LCM-LoRA Mode, OpenVINO OFF\nSize: 512x512, fresh random seed, 1 image at a time\nLoRA: none, unless more_details is ticked (0.5)\nChange ONE thing at a time — base, seed, or wording, never all three.",
+        localdream: "Local Dream — S23 Ultra (Snapdragon 8 Gen 2, SD 1.5 only)\nBase: epiCRealism, SD 1.5\nSampler: DPM++ 2M Karras, 28 steps, CFG 7-8\nSize: 512x512, fresh random seed\nChange ONE thing at a time.",
+        comfy: "ComfyUI CPU — Dell (32GB RAM, no compute GPU)\nCheckpoint: epiCRealism if installed, otherwise the checkpoint you last verified\nSize: 512x512, 20-25 steps, CFG 7, DPM++ 2M Karras\nExpect about 2-3 minutes per image on CPU. Fresh seed, reroll until ink and toes read."
+      };
+
+      function buildStudio() {
+        var eye = studioChecked("studioEye") || "blue";
+        var shot = studioChecked("studioShot") || "feet";
+        var theme = document.getElementById("studioTheme").value;
+        var polish = document.getElementById("studioPolish").value;
+        var setting = studioVal("studioSetting");
+        var must = studioVal("studioMust");
+        var target = studioChecked("studioTarget") || "fastsd";
+        var lora = document.getElementById("studioLora").checked;
+
+        var lock = "locked face of Harley, woman mid 30s, " + eye + " eyes, photorealistic, sharp focus, natural skin texture, long half-red half-blue split-dyed hair with opposite cross-streaks";
+        var ink = "tops of feet tattooed with exact \"Mr. Easton\" script, butterfly tattoo, scattered star tattoos, crisp black ink";
+        var toes = "extremely short stubby thick smooth toes, toes clearly separated, ten toes total, small neat glossy " + polish + " painted toenails, natural nail size, tops of feet only, never soles";
+
+        var framing = "";
+        var negExtra = "";
+        if (shot === "feet") {
+          framing = "photorealistic extreme close-up of only two bare feet, feet fill the frame, cropped at the ankles, only two feet";
+          negExtra = "face, head, upper body, full body, woman in background, ";
+        } else if (shot === "portrait") {
+          framing = "photorealistic full portrait of Harley, head to feet, feet in frame at the bottom";
+          negExtra = "";
+        } else if (shot === "angel") {
+          framing = "photorealistic Harley Angel, large white wings, glowing halo, white-and-gold Grecian outfit, among clouds";
+          negExtra = "";
+        } else if (shot === "bedroom") {
+          framing = "photorealistic Harley in a bedroom, relaxed at home, feet in frame";
+          negExtra = "";
+        } else {
+          framing = "photorealistic Harley as a zombie, pale skin, dark eyes, torn gothic dress, Halloween night";
+          negExtra = "";
+        }
+
+        var parts = [framing, lock, ink, toes, theme];
+        if (setting) parts.push(setting);
+        if (must) parts.push(must);
+        parts.push("soft window light");
+        var prompt = parts.join(", ");
+
+        var neg = negExtra + "three feet, extra feet, extra toes, missing toes, fused toes, overlapping toes, merged feet, long toes, skinny toes, slender toes, deformed feet, blurry feet, oversized toenails, unpainted toenails, soles of feet, bottom view, shoes, socks, stockings, text, watermark, cartoon, CGI, blurry";
+        studioPromptOut.textContent = prompt;
+        studioNegOut.textContent = neg;
+        var settings = STUDIO_SETTINGS[target] || STUDIO_SETTINGS.fastsd;
+        if (lora) settings += "\nLoRA: more_details at 0.5";
+        studioSettingsOut.textContent = settings;
+      }
+
+      function studioCopy(text, msg) {
+        function done() { studioNote.textContent = msg; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { studioNote.textContent = "Copy didn't work here — use the download instead."; });
+        } else { studioNote.textContent = "Copy didn't work here — use the download instead."; }
+      }
+
+      studioForm.addEventListener("input", buildStudio);
+      studioForm.addEventListener("change", buildStudio);
+      buildStudio();
+
+      document.getElementById("studioCopyPrompt").addEventListener("click", function () { studioCopy(studioPromptOut.textContent, "Prompt copied — paste it into FastSD / Local Dream / ComfyUI."); });
+      document.getElementById("studioCopyNeg").addEventListener("click", function () { studioCopy(studioNegOut.textContent, "Negative copied."); });
+      document.getElementById("studioDownload").addEventListener("click", function () {
+        var text = "AMETHYST VOID — STUDIO PROMPT PACK\n==================================\n\nPOSITIVE PROMPT:\n" + studioPromptOut.textContent + "\n\nNEGATIVE PROMPT:\n" + studioNegOut.textContent + "\n\nSETTINGS:\n" + studioSettingsOut.textContent + "\n";
+        var blob = new Blob([text], { type: "text/plain" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = "amethyst-void-prompt-pack.txt";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+        studioNote.textContent = "Prompt pack downloaded.";
       });
     </script>
     <script>
