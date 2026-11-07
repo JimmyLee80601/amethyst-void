@@ -573,7 +573,14 @@
           <h2>Build a shoot, then run it at home</h2>
           <p>This builder writes the full generation prompt for you — Harley's locked look is already in it, every time. Nothing here generates an image or sends anything anywhere. Copy the prompt, run it on the S23 Ultra (Local Dream) or the Dell (FastSD CPU / ComfyUI CPU), pick the winners, and upload them to the gallery. That is the whole loop.</p>
         </div>
-        <div class="builder">
+        <div class="panel" id="studioLock">
+          <label class="prompt-label" for="studioCode">Studio is private — enter the code</label>
+          <p class="hint">Only the studio can generate from here for now. Enter the code to unlock the prompt builder.</p>
+          <div class="field"><input type="password" id="studioCode" placeholder="Enter the studio code" autocomplete="off" /></div>
+          <button class="btn btn-primary" id="studioUnlock" type="button">Unlock Studio</button>
+          <p class="copied-note" id="studioLockNote" role="status"></p>
+        </div>
+        <div class="builder" id="studioBuilder" hidden>
           <form class="panel" id="studioForm">
             <div class="field">
               <label>Locked in — every prompt, no editing needed</label>
@@ -1113,6 +1120,23 @@
           navigator.clipboard.writeText(text).then(done, function () { studioNote.textContent = "Copy didn't work here — use the download instead."; });
         } else { studioNote.textContent = "Copy didn't work here — use the download instead."; }
       }
+
+      var STUDIO_CODE = "WORK";
+      var studioLockEl = document.getElementById("studioLock");
+      var studioBuilderEl = document.getElementById("studioBuilder");
+      function studioShowBuilder() { if (studioLockEl) studioLockEl.hidden = true; if (studioBuilderEl) studioBuilderEl.hidden = false; buildStudio(); }
+      function studioTryUnlock() {
+        var v = document.getElementById("studioCode").value.trim().toUpperCase();
+        if (v === STUDIO_CODE) {
+          try { sessionStorage.setItem("amethyst-studio-unlocked", "1"); } catch (e) {}
+          studioShowBuilder();
+        } else {
+          document.getElementById("studioLockNote").textContent = "Wrong code \u2014 Studio stays locked.";
+        }
+      }
+      document.getElementById("studioUnlock").addEventListener("click", studioTryUnlock);
+      document.getElementById("studioCode").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); studioTryUnlock(); } });
+      try { if (sessionStorage.getItem("amethyst-studio-unlocked") === "1") { studioShowBuilder(); } } catch (e) {}
 
       studioForm.addEventListener("input", buildStudio);
       studioForm.addEventListener("change", buildStudio);
